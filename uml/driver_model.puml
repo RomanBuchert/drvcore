@@ -1,0 +1,45 @@
+@startuml drvcore_driver_model
+
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+
+package "drvcore" {
+    class driver_t {
+        +name: const char*
+        +type_id: uint32_t
+        +type: driver_type_t*
+        +impl: void*
+        +refcount: uint32_t
+        +registered: bool
+    }
+
+    class driver_type_t {
+        +name: const char*
+        +api_spec: driver_api_spec_t*
+    }
+
+    class driver_api_spec_t {
+        +function_names: const char**
+        +function_ptrs: const void**
+        +count: size_t
+    }
+
+    class type_variant_t {
+        +type: type_variant_type_t
+        +value: union (ptr/uval/sval/str/byte_stream)
+    }
+}
+
+driver_t --> driver_type_t
+driver_type_t --> driver_api_spec_t
+
+note right of type_variant_t
+  value enthält union mit möglichen Typen:
+  - void* ptr
+  - uint64_t uval
+  - int64_t sval
+  - const char* str
+  - {char* bytes, size_t len} byte_stream
+end note
+
+@enduml

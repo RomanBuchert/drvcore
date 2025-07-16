@@ -1,0 +1,14 @@
+{
+  "plantuml.exportOutDir": "uml/out",
+  "plantuml.diagramsRoot": "uml",
+  "plantuml.commandArgs": [],
+  "plantuml.jar": "",
+  "plantuml.render": "Local", // Local (mit Java) oder "PlantUMLServer"
+  "plantuml.exportFormat": "png",
+  "plantuml.exportOnSave": true,
+  "plantuml.previewAutoUpdate": true,
+  "files.associations": {
+    "stdint.h": "c"
+  },
+
+}
