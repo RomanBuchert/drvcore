@@ -231,3 +231,44 @@ ssize_t registry_get_free_index(const registry_t* const registry) {
     }
     return -1;
 }
+
+/**
+ * @brief regsitry_get_space: Return the number of free elements.
+ * 
+ * @param (const registry_t* const) registry: Pointer to struct, where the drivers are stored in.
+ * 
+ * @return (ssize_t): Number of free elements in registry list
+ */
+ssize_t registry_get_space(const registry_t* const registry) {
+    // Parameter check
+    if (registry == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    ssize_t space = 0;
+    for (size_t i = 0; i < registry->driver_list_size; i++) {
+        if (registry->driver_list[i] == NULL) {
+            space++;
+        }
+    }
+
+    return space;
+}
+
+/**
+ * @brief registry_get_size: Returns the number of elements that can be stored in list.
+ * 
+ * @param (const registry_t* const) registry: Pointer to struct, where the drivers are stored in.
+ *
+ * @return (ssize_t): Number of elements that can be stored in list.
+ */
+ssize_t registry_get_size(const registry_t* const registry) {
+    // Parameter check
+    if (registry == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    return (ssize_t) registry->driver_list_size;
+}
