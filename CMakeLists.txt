@@ -4,6 +4,7 @@ project("Generic Driver")
 
 add_library(drv_core STATIC
     ${CMAKE_SOURCE_DIR}/src/driver.c
+    ${CMAKE_SOURCE_DIR}/src/registry.c
     ${CMAKE_SOURCE_DIR}/src/drv_core.c
 )
 
