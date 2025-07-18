@@ -1,4 +1,4 @@
-#include "drv_core.h"
+#include "drv_dio.h"
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -9,72 +9,72 @@
 /*
  * LOCAL Prototypes
  */
-static int drv_core_reg_drv(driver_t* base_driver, const char* name, driver_t* driver);
-static int drv_core_dereg_drv(driver_t* base_driver, driver_t* driver);
-static driver_t* drv_core_open(driver_t* base_driver, const char* name);
-static int drv_core_close(driver_t* driver);
-static ssize_t drv_core_read(driver_t* driver, void* buffer, size_t count);
-static ssize_t drv_core_write(driver_t* driver, const void* buffer, size_t count);
-static int drv_core_ioctl(driver_t* driver, size_t id, void* param);
-static size_t drv_core_get_properties(driver_t* driver);
-static property_t* drv_core_get_property(driver_t* driver, size_t id);
+static int drv_dio_reg_drv(driver_t* base_driver, const char* name, driver_t* driver);
+static int drv_dio_dereg_drv(driver_t* base_driver, driver_t* driver);
+static driver_t* drv_dio_open(driver_t* base_driver, const char* name);
+static int drv_dio_close(driver_t* driver);
+static ssize_t drv_dio_read(driver_t* driver, void* buffer, size_t count);
+static ssize_t drv_dio_write(driver_t* driver, const void* buffer, size_t count);
+static int drv_dio_ioctl(driver_t* driver, size_t id, void* param);
+static size_t drv_dio_get_properties(driver_t* driver);
+static property_t* drv_dio_get_property(driver_t* driver, size_t id);
 
 /*
  * LOCAL Variables 
  */
 
-static registry_t drv_core_params = {
+static registry_t drv_dio_params = {
     NULL,
     0,
     0
 };
 
-const driver_fops_t drv_core_fops = {
-        .reg_drv = drv_core_reg_drv,
-        .dereg_drv = drv_core_dereg_drv,
-        .open = drv_core_open,
-        .close = drv_core_close,
-        .read = drv_core_read,
-        .write = drv_core_write,
-        .ioctl = drv_core_ioctl,
-        .get_properties = drv_core_get_properties,
-        .get_property = drv_core_get_property,
+const driver_fops_t drv_dio_fops = {
+        .reg_drv = drv_dio_reg_drv,
+        .dereg_drv = drv_dio_dereg_drv,
+        .open = drv_dio_open,
+        .close = drv_dio_close,
+        .read = drv_dio_read,
+        .write = drv_dio_write,
+        .ioctl = drv_dio_ioctl,
+        .get_properties = drv_dio_get_properties,
+        .get_property = drv_dio_get_property,
 
 };
 
-static const property_t drv_core_properties[] = {
+static const property_t drv_dio_properties[] = {
 };
 
-static driver_ctx_t drv_core_ctx = {
+static driver_ctx_t drv_dio_ctx = {
     .open_cntr = 0,
     .open_max = 1,
     .parent = NULL,
     .properties = {
         .count = 1,
-        .list = drv_core_properties,
+        .list = drv_dio_properties,
     },
-    .reg_name = "core"
+    .reg_name = "dio"
 };
 
-static const driver_t drv_core_config = {
-    .name = "core",
-    .type = DRV_CORE,
-    .fops = &drv_core_fops,
-    .ctx  = &drv_core_ctx,
-    .user = (void* const)&drv_core_params,
+static const driver_t drv_dio_config = {
+    .name = "dio",
+    .type = DRV_DIO,
+    .fops = &drv_dio_fops,
+    .ctx  = &drv_dio_ctx,
+    .user = (void* const)&drv_dio_params,
 };
 
-const driver_t const* drv_core = &drv_core_config;
+const driver_t const* drv_dio = &drv_dio_config;
 
 /*
  * LOCAL Functions
  */
-static int drv_core_reg_drv(driver_t* base_driver, const char* name, driver_t* driver) {
-    // base_driver kann nicht null sein, da von drv_register() drv_core_reg_drv über base_driver->fop aufgerufen wird.
+static int drv_dio_reg_drv(driver_t* base_driver, const char* name, driver_t* driver) {
+    // base_driver kann nicht null sein, da von drv_register() drv_dio_reg_drv über base_driver->fop aufgerufen wird.
     // name und driver sind schon vorab auf Gültigkeit geprüft.
 
     // Core-Treiber darf nicht registriert werden.
-    if (driver->type == DRV_CORE) {
+    if (driver->type == DRV_DIO) {
         errno = EINVAL;
         return -1;
     }
@@ -90,7 +90,7 @@ static int drv_core_reg_drv(driver_t* base_driver, const char* name, driver_t* d
 
 }
 
-static int drv_core_dereg_drv(driver_t* base_driver, driver_t* driver) {
+static int drv_dio_dereg_drv(driver_t* base_driver, driver_t* driver) {
     ssize_t index;
 
     registry_t* registry = (registry_t*) base_driver->user;
@@ -103,7 +103,7 @@ static int drv_core_dereg_drv(driver_t* base_driver, driver_t* driver) {
     return registry_remove_driver(registry, driver);
 }
 
-static driver_t* drv_core_open(driver_t* base_driver, const char* name) {
+static driver_t* drv_dio_open(driver_t* base_driver, const char* name) {
 
     registry_t* registry = (registry_t*) base_driver->user;
     // Prüfe registry. Sollte eigentlich nie NULL sein, da statisch definiert.
@@ -130,7 +130,7 @@ static driver_t* drv_core_open(driver_t* base_driver, const char* name) {
     return NULL;
 }
 
-static int drv_core_close(driver_t* driver) {
+static int drv_dio_close(driver_t* driver) {
     // Parametercheck für driver ist nicht notwendig, da schon von drv_close geprüft.
 
     // Prüfe, ob schon alles geschlossen ist.
@@ -144,27 +144,27 @@ static int drv_core_close(driver_t* driver) {
     }
 }
 
-static ssize_t drv_core_read(driver_t* driver, void* buffer, size_t count) {
+static ssize_t drv_dio_read(driver_t* driver, void* buffer, size_t count) {
     errno = ENOTSUP;
     return -1;
 }
 
-static ssize_t drv_core_write(driver_t* driver, const void* buffer, size_t count) {
+static ssize_t drv_dio_write(driver_t* driver, const void* buffer, size_t count) {
     errno = ENOTSUP;
     return -1;
 }
 
-static int drv_core_ioctl(driver_t* driver, size_t id, void* param) {
+static int drv_dio_ioctl(driver_t* driver, size_t id, void* param) {
     errno = ENOTSUP;
     return -1;
 }
 
-static size_t drv_core_get_properties(driver_t* driver) {
+static size_t drv_dio_get_properties(driver_t* driver) {
     errno = ENOTSUP;
     return -1;
 }
 
-static property_t* drv_core_get_property(driver_t* driver, size_t id) {
+static property_t* drv_dio_get_property(driver_t* driver, size_t id) {
     errno = ENOTSUP;
     return NULL;
 }

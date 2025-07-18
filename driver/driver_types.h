@@ -14,6 +14,7 @@ typedef struct driver_s driver_t;
 
 typedef enum {
     DRV_CORE,
+    DRV_DIO,
     DRV_GPIO,
     DRV_GPIO_PORT,
     DRV_GPIO_PIN,
@@ -26,7 +27,7 @@ struct driver_ctx_s {
     driver_t* parent;                               //Parent of this driver.
     const size_t open_max;                          //Max amount of open operations. Fixed
     size_t open_cntr;                               // Current number of opens.
-    const driver_properties_t properties;           // Driver properties. Fixed.
+    const property_list_t properties;               // Driver properties. Fixed.
     const char* reg_name;                           // Name under which the driver is registered.
 };
 
@@ -39,7 +40,7 @@ struct driver_fops_s {
     ssize_t (*write)(driver_t* driver, const void* buffer, size_t count);
     int (*ioctl)(driver_t* driver, size_t id, void* param);
     size_t (*get_properties)(driver_t* driver);
-    driver_property_t* (*get_property)(driver_t* driver, size_t id);
+    property_t* (*get_property)(driver_t* driver, size_t id);
 };
 
 struct driver_s {

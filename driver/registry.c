@@ -31,6 +31,11 @@
  * @brief registry_add_driver: Add a driver to the list.
  * If the list is empty or full, it will be expanded automaticly.
  * It also checks, if the driver is already in the list and revode adding it.
+ * 
+ * A driver will only be registered, if
+ * * A driver with the same registered name
+ * * A driver with the same driver_t* driver
+ * does not exist
  *
  * @param (registry_t*) registry: List, to add the driver to.
  * @param (const driver_t* const) driver: Driver to be added.
@@ -63,7 +68,8 @@ int registry_add_driver(registry_t* registry, const driver_t* const driver) {
     }
 
     // Doublication check
-    if (registry_get_index_by_driver(registry, driver) != -1) {
+    if ((registry_get_index_by_reg_name(registry, driver->ctx->reg_name) != -1) ||
+        (registry_get_index_by_driver(registry, driver) != -1)) {
         errno = EEXIST;
         return -1;
     }
@@ -161,6 +167,27 @@ driver_t* registry_get_driver_by_name(const registry_t* const registry, const ch
 }
 
 /**
+ * @brief registry_get_driver_by_reg_name: Get driver handle by registered name.
+ * 
+ * @param (const registry_t* const) registry: Pointer to struct, where the drivers are stored in.
+ * @param (const char* const ) reg_name: Registered name of the driver to get.
+ * 
+ * @return (driver_t*): NULL: Driver not found; other: handle to the requested driver.
+ */
+driver_t* registry_get_driver_by_reg_name(const registry_t* const registry, const char* const reg_name) {
+    for(size_t i = 0; i < registry->driver_list_size; i++) {
+        if ((registry->driver_list[i] == NULL) ||(registry->driver_list[i]->ctx == NULL)) {
+            continue;
+        }
+        if ((strlen(registry->driver_list[i]->ctx->reg_name) == strlen(reg_name)) &&
+            (strcmp(registry->driver_list[i]->ctx->reg_name, reg_name) == 0)) {
+                return registry->driver_list[i];
+        }
+    }
+    return NULL;
+}
+
+/**
  * @brief registry_get_driver_by_index: Get driver handle by index.
  * 
  * @param (const registry_t* const) registry: Pointer to struct, where the drivers are stored in.
@@ -192,6 +219,28 @@ ssize_t registry_get_index_by_name(const registry_t* const registry, const char*
         }
         if ((strlen(registry->driver_list[i]->name) == strlen(name)) &&
             (strcmp(registry->driver_list[i]->name, name) == 0)) {
+                return i;
+        }
+    }
+    return -1;
+}
+
+/**
+ * @brief registry_get_index_by_reg_name: Get the index of the driver by the drivers registered name.
+ * 
+ * @param (const registry_t* const) registry: Pointer to struct, where the drivers are stored in.
+ * @param (const char* const) reg_name: Registered name of the driver to get.
+ * 
+ * @return (ssize_t): -1: Driver not found; other: Index of the driver
+ */
+ssize_t registry_get_index_by_reg_name(const registry_t* const registry, const char* const reg_name) {
+    ssize_t i;
+    for (i = 0; i < registry->driver_list_size; i++) {
+        if ((registry->driver_list[i] == NULL) || (registry->driver_list[i]->ctx == NULL)) {
+            continue;
+        }
+        if ((strlen(registry->driver_list[i]->ctx->reg_name) == strlen(reg_name)) &&
+            (strcmp(registry->driver_list[i]->ctx->reg_name, reg_name) == 0)) {
                 return i;
         }
     }

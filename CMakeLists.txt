@@ -5,6 +5,7 @@ project("Generic Driver")
 # Subprojects
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/driver)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/drv_core)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/drv_dio)
 
 # Testing
 include(FetchContent)
@@ -32,10 +33,15 @@ target_include_directories(drv_core_test
 target_link_libraries(drv_core_test
     driver
     drv_core
+    drv_dio
     unity
 )
 
 add_test(
     NAME core_test
     COMMAND drv_core_test
+)
+
+target_link_libraries(drv_core_test
+    test_registry
 )

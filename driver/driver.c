@@ -5,7 +5,7 @@
 /*
  * GLOBAL Functions
  */
-int drv_register(driver_t* base_driver, const char* name, driver_t* driver) {
+int drv_register(const driver_t* const base_driver, const char* const name, const driver_t* const driver) {
     // Parameter check
     if ((base_driver == NULL) || (name == NULL) || (strlen(name) == 0) || (driver == NULL)) {
         errno = EINVAL;
@@ -30,7 +30,7 @@ int drv_register(driver_t* base_driver, const char* name, driver_t* driver) {
     return -1;
 }
 
-int drv_deregister(driver_t* base_driver, driver_t* driver) {
+int drv_deregister(const driver_t* const base_driver, const driver_t* const driver) {
     // Parameter check
     if ((base_driver == NULL) || (driver == NULL)) {
         errno = EINVAL;
@@ -51,7 +51,7 @@ int drv_deregister(driver_t* base_driver, driver_t* driver) {
 
 }
 
-driver_t* drv_open(driver_t* base_driver, const char* name) {
+driver_t* drv_open(const driver_t* const base_driver, const char* const name) {
     // Parameter check
     if ((base_driver == NULL) || (name == NULL) || (strlen(name) == 0)) {
         errno = EINVAL;

@@ -80,6 +80,16 @@ int registry_free_registry(registry_t* registry);
 driver_t* registry_get_driver_by_name(const registry_t* const registry, const char* const name);
 
 /**
+ * @brief registry_get_driver_by_reg_name: Get driver handle by registered name.
+ * 
+ * @param (const registry_t* const) registry: Pointer to struct, where the drivers are stored in.
+ * @param (const char* const ) reg_name: Registered name of the driver to get.
+ * 
+ * @return (driver_t*): NULL: Driver not found; other: handle to the requested driver.
+ */
+driver_t* registry_get_driver_by_reg_name(const registry_t* const registry, const char* const reg_name);
+
+/**
  * @brief registry_get_driver_by_index: Get driver handle by index.
  * 
  * @param (const registry_t* const) registry: Pointer to struct, where the drivers are stored in.
@@ -98,6 +108,16 @@ driver_t* registry_get_driver_by_index(const registry_t* const registry, size_t 
  * @return (ssize_t): -1: Driver not found; other: Index of the driver
  */
 ssize_t registry_get_index_by_name(const registry_t* const registry, const char* const name);
+
+/**
+ * @brief registry_get_index_by_reg_name: Get the index of the driver by the drivers registered name.
+ * 
+ * @param (const registry_t* const) registry: Pointer to struct, where the drivers are stored in.
+ * @param (const char* const) reg_name: Registered name of the driver to get.
+ * 
+ * @return (ssize_t): -1: Driver not found; other: Index of the driver
+ */
+ssize_t registry_get_index_by_reg_name(const registry_t* const registry, const char* const reg_name);
 
 /**
  * @brief registry_get_index_by_driver: Get the index of the driver by the drivers handle.

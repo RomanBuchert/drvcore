@@ -13,19 +13,22 @@
 
 #include <types.h>
 
-typedef struct driver_property_s driver_property_t;
-typedef struct driver_properties_s driver_properties_t;
+typedef struct property_s property_t;
+typedef struct property_list_s property_list_t;
 
-struct driver_property_s {
-    const char* const name;                         //Name. Fixed.
-    const type_variant_t property;                  //Property. Fixed.
+typedef enum property_type_e {
+    PROP_UNKNOWN,
+    PROP_LIST
+} property_type_t;
+
+struct property_s {
+    const property_type_t type;                         //Name. Fixed.
+    const type_variant_t property;                      //Property. Fixed.
 };
 
-struct driver_properties_s {
+struct property_list_s {
     const size_t count;                             //Number of properties. Fixed.
-    const driver_property_t* list;                  //Array with properties. Fixed.
+    const property_t* list;                         //Array with properties. Fixed.
 };
-
-
 
 #endif //_PROPERTY_TYPES_H_
