@@ -6,9 +6,8 @@
 #include <sys/types.h>
 
 #include <types.h>
+#include <property_types.h>
 
-typedef struct driver_property_s driver_property_t;
-typedef struct driver_properties_s driver_properties_t;
 typedef struct driver_fops_s driver_fops_t;
 typedef struct driver_ctx_s driver_ctx_t;
 typedef struct driver_s driver_t;
@@ -22,16 +21,6 @@ typedef enum {
     DRV_SPI,
     DRV_QSPI,
 } driver_types_t;
-
-struct driver_property_s {
-    const char* const name;                         //Name. Fixed.
-    const type_variant_t property;                  //Property. Fixed.
-};
-
-struct driver_properties_s {
-    const size_t count;                             //Number of properties. Fixed.
-    const driver_property_t* list;                  //Array with properties. Fixed.
-};
 
 struct driver_ctx_s {
     driver_t* parent;                               //Parent of this driver.

@@ -2,16 +2,9 @@ cmake_minimum_required(VERSION 3.25)
 
 project("Generic Driver")
 
-add_library(drv_core STATIC
-    ${CMAKE_SOURCE_DIR}/src/driver.c
-    ${CMAKE_SOURCE_DIR}/src/registry.c
-    ${CMAKE_SOURCE_DIR}/src/drv_core.c
-)
-
-target_include_directories(drv_core
-    PUBLIC
-        ${CMAKE_SOURCE_DIR}/include
-)
+# Subprojects
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/driver)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/drv_core)
 
 # Testing
 include(FetchContent)
@@ -37,6 +30,7 @@ target_include_directories(drv_core_test
 )
 
 target_link_libraries(drv_core_test
+    driver
     drv_core
     unity
 )
