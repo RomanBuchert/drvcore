@@ -39,7 +39,6 @@ const driver_fops_t drv_core_fops = {
         .ioctl = drv_core_ioctl,
         .get_properties = drv_core_get_properties,
         .get_property = drv_core_get_property,
-
 };
 
 static const property_t drv_core_properties[] = {

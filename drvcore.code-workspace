@@ -6,7 +6,8 @@
     ],
     "settings": {
         "files.associations": {
-            "driver.h": "c"
+            "driver.h": "c",
+            "property_types.h": "c"
         }
     }
 }

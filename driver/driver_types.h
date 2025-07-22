@@ -21,6 +21,7 @@ typedef enum {
     DRV_I2C,
     DRV_SPI,
     DRV_QSPI,
+    DRV_TEST,
 } driver_types_t;
 
 struct driver_ctx_s {

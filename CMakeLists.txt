@@ -44,4 +44,6 @@ add_test(
 
 target_link_libraries(drv_core_test
     test_registry
+    test_driver
+
 )
