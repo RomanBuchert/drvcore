@@ -49,6 +49,13 @@ int registry_add_driver(registry_t* registry, const driver_t* const driver) {
         return -1;
     }
 
+    // Konsistenz check.
+    if (((registry->driver_list == NULL) != (registry->driver_list_size == 0)) ||
+        (registry->driver_list_used > registry->driver_list_size)) {
+        errno = EFAULT;
+        return -1;
+    }
+
     /*
      * Resize / initialize the drivers list, if neccessary.
      * It makes it much easier to allocate memory first and then check whether the driver is already registered.
@@ -140,6 +147,7 @@ int registry_free_registry(registry_t* registry) {
     if (registry->driver_list != NULL) {
         free(registry->driver_list);
         registry->driver_list = NULL;
+        registry->driver_list_size = 0;
     }
 
     return 0;
@@ -163,6 +171,7 @@ driver_t* registry_get_driver_by_name(const registry_t* const registry, const ch
                 return registry->driver_list[i];
         }
     }
+    errno = ENOENT;
     return NULL;
 }
 
@@ -184,6 +193,7 @@ driver_t* registry_get_driver_by_reg_name(const registry_t* const registry, cons
                 return registry->driver_list[i];
         }
     }
+    errno = ENOENT;
     return NULL;
 }
 
@@ -199,7 +209,7 @@ driver_t* registry_get_driver_by_index(const registry_t* const registry, size_t 
     if (index < registry->driver_list_size) {
         return registry->driver_list[index];
     }
-
+    errno = ENOENT;
     return NULL;
 }
 
@@ -222,6 +232,7 @@ ssize_t registry_get_index_by_name(const registry_t* const registry, const char*
                 return i;
         }
     }
+    errno = ENOENT;
     return -1;
 }
 
@@ -235,6 +246,10 @@ ssize_t registry_get_index_by_name(const registry_t* const registry, const char*
  */
 ssize_t registry_get_index_by_reg_name(const registry_t* const registry, const char* const reg_name) {
     ssize_t i;
+    if (registry->driver_list == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
     for (i = 0; i < registry->driver_list_size; i++) {
         if ((registry->driver_list[i] == NULL) || (registry->driver_list[i]->ctx == NULL)) {
             continue;
@@ -244,6 +259,7 @@ ssize_t registry_get_index_by_reg_name(const registry_t* const registry, const c
                 return i;
         }
     }
+    errno = ENOENT;
     return -1;
 }
 
@@ -257,11 +273,18 @@ ssize_t registry_get_index_by_reg_name(const registry_t* const registry, const c
  */
 ssize_t registry_get_index_by_driver(const registry_t* const registry, const driver_t* const driver) {
     ssize_t i;
+    if (registry->driver_list == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
+
     for (i = 0; i < registry->driver_list_size; i++) {
         if (registry->driver_list[i] == driver) {
             return i;
         }
     }
+
+    errno = EEXIST;
     return -1;
 }
 
@@ -273,11 +296,16 @@ ssize_t registry_get_index_by_driver(const registry_t* const registry, const dri
  * @return (ssize_t): -1: No free index; other Free Index.
  */
 ssize_t registry_get_free_index(const registry_t* const registry) {
+    if (registry->driver_list == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
     for(size_t i = 0; i < registry->driver_list_size; i++) {
         if (registry->driver_list[i] == NULL) {
             return i;
         }
     }
+    errno = ENOSPC;
     return -1;
 }
 

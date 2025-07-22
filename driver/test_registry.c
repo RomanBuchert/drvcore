@@ -5,12 +5,9 @@
 #include <errno.h>
 
 // ---- Dummy-Kontext und Treiber ----
-typedef struct {
-    const char* reg_name;
-} dummy_ctx_t;
 
-static dummy_ctx_t ctx1 = { .reg_name = "reg_drv1" };
-static dummy_ctx_t ctx2 = { .reg_name = "reg_drv2" };
+static driver_ctx_t ctx1 = { .reg_name = "reg_drv1" };
+static driver_ctx_t ctx2 = { .reg_name = "reg_drv2" };
 
 static driver_t drv1 = { .name = "drv1", .ctx = (void*)&ctx1 };
 static driver_t drv2 = { .name = "drv2", .ctx = (void*)&ctx2 };
@@ -21,13 +18,13 @@ static registry_t reg;
 
 void test_registry_setUp(void)
 {
-//    memset(&reg, 0, sizeof(registry_t));
+    memset(&reg, 0, sizeof(registry_t));
 }
 
 void test_registry_tearDown(void)
 {
-//    free(reg.driver_list);
-//    memset(&reg, 0, sizeof(registry_t));
+    free(reg.driver_list);
+    memset(&reg, 0, sizeof(registry_t));
 }
 
 // ---- registry_add_driver ----
@@ -39,10 +36,23 @@ void test_add_valid_driver_should_succeed(void)
 
 void test_add_duplicate_driver_should_fail(void)
 {
+    const char* reg_name;
     registry_add_driver(&reg, &drv1);
+
+    // Add same driver twice
     errno = 0;
     TEST_ASSERT_EQUAL_INT(-1, registry_add_driver(&reg, &drv1));
     TEST_ASSERT_EQUAL_INT(EEXIST, errno);
+
+    // Try to register driver with same name
+    errno = 0;
+    reg_name = drv2.ctx->reg_name;
+    drv2.ctx->reg_name= drv1.ctx->reg_name;
+    TEST_ASSERT_EQUAL_INT(-1, registry_add_driver(&reg, &drv2));
+    TEST_ASSERT_EQUAL_INT(EEXIST, errno);
+
+    //Cleanup
+    drv2.ctx->reg_name = reg_name;
 }
 
 void test_add_driver_with_null_args_should_fail(void)
@@ -54,6 +64,33 @@ void test_add_driver_with_null_args_should_fail(void)
     errno = 0;
     TEST_ASSERT_EQUAL_INT(-1, registry_add_driver(&reg, NULL));
     TEST_ASSERT_EQUAL_INT(EINVAL, errno);
+}
+
+void test_add_driver_consistency(void) {
+    // Test memory allocated but no size set
+    errno = 0;
+    reg.driver_list = (driver_t**)0xCAFEBABE;
+    reg.driver_list_size = 0;
+    TEST_ASSERT_EQUAL_INT(-1, registry_add_driver(&reg, &drv1));
+    TEST_ASSERT_EQUAL_INT(EFAULT, errno);
+
+    // Test no memory allocated, but size set
+    errno = 0;
+    reg.driver_list = NULL;
+    reg.driver_list_size = 1;
+    TEST_ASSERT_EQUAL_INT(-1, registry_add_driver(&reg, &drv1));
+    TEST_ASSERT_EQUAL_INT(EFAULT, errno);
+
+    // Test used > size
+    errno = 0;
+    reg.driver_list = (driver_t**)0xCAFEBABE;
+    reg.driver_list_size = 4;
+    reg.driver_list_used = 5;
+    TEST_ASSERT_EQUAL_INT(-1, registry_add_driver(&reg, &drv1));
+    TEST_ASSERT_EQUAL_INT(EFAULT, errno);
+
+    //Cleanup
+    memset(&reg, 0, sizeof(registry_t));
 }
 
 // ---- registry_remove_driver ----
@@ -68,6 +105,7 @@ void test_remove_existing_driver_should_succeed(void)
 void test_remove_nonexistent_driver_should_fail(void)
 {
     registry_add_driver(&reg, &drv1);
+
     errno = 0;
     TEST_ASSERT_EQUAL_INT(-1, registry_remove_driver(&reg, &drv2));
     TEST_ASSERT_EQUAL_INT(ENOENT, errno);
@@ -76,6 +114,7 @@ void test_remove_nonexistent_driver_should_fail(void)
 void test_remove_with_null_args_should_fail(void)
 {
     registry_add_driver(&reg, &drv1);
+
     errno = 0;
     TEST_ASSERT_EQUAL_INT(-1, registry_remove_driver(NULL, &drv1));
     TEST_ASSERT_EQUAL_INT(EINVAL, errno);
@@ -92,11 +131,13 @@ void test_free_empty_registry_should_succeed(void)
     registry_remove_driver(&reg, &drv1);
     TEST_ASSERT_EQUAL_INT(0, registry_free_registry(&reg));
     TEST_ASSERT_NULL(reg.driver_list);
+    TEST_ASSERT_EQUAL_INT(0, reg.driver_list_size);
 }
 
 void test_free_nonempty_registry_should_fail(void)
 {
     registry_add_driver(&reg, &drv1);
+
     errno = 0;
     TEST_ASSERT_EQUAL_INT(-1, registry_free_registry(&reg));
     TEST_ASSERT_EQUAL_INT(ENOTEMPTY, errno);
@@ -120,7 +161,10 @@ void test_get_driver_by_name_should_return_correct_pointer(void)
 void test_get_driver_by_name_should_return_null_on_not_found(void)
 {
     registry_add_driver(&reg, &drv1);
+
+    errno = 0;
     TEST_ASSERT_NULL(registry_get_driver_by_name(&reg, "nonexistent"));
+    TEST_ASSERT_EQUAL_INT(ENOENT, errno);
 }
 
 // ---- registry_get_driver_by_reg_name ----
@@ -134,7 +178,10 @@ void test_get_driver_by_reg_name_should_return_correct_pointer(void)
 void test_get_driver_by_reg_name_should_return_null_on_not_found(void)
 {
     registry_add_driver(&reg, &drv1);
+
+    errno = 0;
     TEST_ASSERT_NULL(registry_get_driver_by_reg_name(&reg, "unknown"));
+    TEST_ASSERT_EQUAL_INT(ENOENT, errno);
 }
 
 // ---- registry_get_driver_by_index ----
@@ -147,7 +194,10 @@ void test_get_driver_by_index_should_return_correct_pointer(void)
 void test_get_driver_by_index_out_of_bounds_should_return_null(void)
 {
     registry_add_driver(&reg, &drv1);
+
+    errno = 0;
     TEST_ASSERT_NULL(registry_get_driver_by_index(&reg, 10));
+    TEST_ASSERT_EQUAL_INT(ENOENT, errno);
 }
 
 // ---- registry_get_index_by_name ----
@@ -160,7 +210,10 @@ void test_get_index_by_name_should_return_correct_index(void)
 void test_get_index_by_name_should_return_negative_on_not_found(void)
 {
     registry_add_driver(&reg, &drv1);
+
+    errno = 0;
     TEST_ASSERT_EQUAL_INT(-1, registry_get_index_by_name(&reg, "unknown"));
+    TEST_ASSERT_EQUAL_INT(ENOENT, errno);
 }
 
 // ---- registry_get_index_by_reg_name ----
@@ -173,7 +226,10 @@ void test_get_index_by_reg_name_should_return_correct_index(void)
 void test_get_index_by_reg_name_should_return_negative_on_not_found(void)
 {
     registry_add_driver(&reg, &drv1);
+
+    errno = 0;
     TEST_ASSERT_EQUAL_INT(-1, registry_get_index_by_reg_name(&reg, "none"));
+    TEST_ASSERT_EQUAL_INT(ENOENT, errno);
 }
 
 // ---- registry_get_index_by_driver ----
@@ -181,12 +237,17 @@ void test_get_index_by_driver_should_return_correct_index(void)
 {
     registry_add_driver(&reg, &drv1);
     registry_add_driver(&reg, &drv2);
+    TEST_ASSERT_EQUAL_INT(0, registry_get_index_by_driver(&reg, &drv1));
     TEST_ASSERT_EQUAL_INT(1, registry_get_index_by_driver(&reg, &drv2));
 }
 
 void test_get_index_by_driver_should_return_negative_on_not_found(void)
 {
+    registry_add_driver(&reg, &drv1);
+
+    errno = 0;
     TEST_ASSERT_EQUAL_INT(-1, registry_get_index_by_driver(&reg, &drv2));
+    TEST_ASSERT_EQUAL_INT(EEXIST, errno);
 }
 
 // ---- registry_get_free_index ----
@@ -204,7 +265,7 @@ void test_registry_get_space_should_return_correct_number(void)
     registry_add_driver(&reg, &drv1);
     registry_add_driver(&reg, &drv2);
     registry_remove_driver(&reg, &drv1);
-    TEST_ASSERT_EQUAL_INT(1, registry_get_space(&reg));
+    TEST_ASSERT_EQUAL_INT(7, registry_get_space(&reg));
 }
 
 void test_registry_get_space_with_null_should_fail(void)
@@ -235,6 +296,7 @@ void test_registry_run_all() {
     RUN(test_add_valid_driver_should_succeed);
     RUN(test_add_duplicate_driver_should_fail);
     RUN(test_add_driver_with_null_args_should_fail);
+    RUN(test_add_driver_consistency);
     RUN(test_remove_existing_driver_should_succeed);
     RUN(test_remove_nonexistent_driver_should_fail);
     RUN(test_remove_with_null_args_should_fail);
