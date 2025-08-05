@@ -22,14 +22,14 @@ typedef enum {
     DRV_SPI,
     DRV_QSPI,
     DRV_TEST,
-} driver_types_t;
+} driver_type_t;
 
 struct driver_ctx_s {
-    driver_t* parent;                               //Parent of this driver.
-    const size_t open_max;                          //Max amount of open operations. Fixed
+    const char* reg_name;                           // Name under which the driver is registered.
+    driver_t* parent;                               // Parent of this driver.
+    const size_t open_max;                          // Max amount of open operations. Fixed
     size_t open_cntr;                               // Current number of opens.
     const property_list_t properties;               // Driver properties. Fixed.
-    const char* reg_name;                           // Name under which the driver is registered.
 };
 
 struct driver_fops_s {
@@ -46,7 +46,7 @@ struct driver_fops_s {
 
 struct driver_s {
     const char* const name;                         //Name of the driver. Fixed.
-    const driver_types_t type;                      //Type of the driver. Fixed.
+    const driver_type_t type;                       //Type of the driver. Fixed.
     const driver_fops_t* const fops;                //File operations. Fixed.
     driver_ctx_t* const ctx;                        //Internal data. Pointer fixed, content variable.
     void* const user;                               //User data. Pointer fixed, content variable.
