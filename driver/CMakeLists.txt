@@ -7,6 +7,7 @@ target_sources( driver
         ${CMAKE_CURRENT_SOURCE_DIR}/driver.c
         ${CMAKE_CURRENT_SOURCE_DIR}/registry.c
         ${CMAKE_CURRENT_SOURCE_DIR}/properties.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/dyn_array.c
 )
 
 target_include_directories( driver
